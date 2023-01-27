@@ -27,6 +27,10 @@ func InitRouter() {
 		comment.DELETE("/:comment_id", DeleteComment)
 		comment.PUT("/:comment_id", RefreshComment)
 	}
+	discuss := r.Group("/discuss")
+	{
+		discuss.POST("/:post_id", CreateDiscuss)
+	}
 	operate := r.Group("/operate")
 	{
 		operate.PUT("/praise/:target_id/model", Praise)
