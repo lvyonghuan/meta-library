@@ -31,6 +31,7 @@ func InitRouter() {
 	{
 		discuss.POST("/:post_id", CreateDiscuss)
 		discuss.GET("/:post_id", GetDiscussList)
+		discuss.DELETE("/:discuss_id", DeleteDiscuss)
 	}
 	operate := r.Group("/operate")
 	{

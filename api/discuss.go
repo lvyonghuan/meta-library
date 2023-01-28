@@ -66,3 +66,42 @@ func GetDiscussList(c *gin.Context) { //获取一个帖子下全部的回复信�
 	}
 	util.GetDiscussInfoSuccess(c, uDiscussInfo)
 }
+
+func DeleteDiscuss(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	discussIDString := c.Param("discuss_id")
+	isExpired, username, err := tool.TokenExpired([]byte("114"), token)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 600100, "token错误")
+		return
+	}
+	if !isExpired {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 600102, "token已过期")
+		return
+	}
+	uUser, err := service.SearchUserByUserName(username)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	discussID, err := strconv.Atoi(discussIDString)
+	if err != nil {
+		log.Printf("search discuss error:%v", err)
+		util.NormErr(c, 70013, "discuss_id非法")
+		return
+	}
+	err = service.DeleteDiscuss(discussID, uUser.Id)
+	if err != nil {
+		if err.Error() == "discuss_id and user_id not match" {
+			util.NormErr(c, 70014, "用户无权限删除此书评")
+			return
+		}
+		log.Printf("search user error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	util.RespOK(c)
+}

@@ -1,6 +1,9 @@
 package dao
 
-import "meta_library/model"
+import (
+	"fmt"
+	"meta_library/model"
+)
 
 //两个功能：一个是发表评论，第二个回复评论
 //这块完全没用经验，姑且先弄一下思路。发表评论直接挂靠在post_id下即可，同时获取user_id。
@@ -30,5 +33,18 @@ func GetDiscussList(postID int) (u []model.DiscussInfo, err error) {
 		}
 		u = append(u, temp)
 	}
+	return
+}
+
+func DeleteDiscuss(discussID int, userID int) (err error) {
+	var count int
+	err = DB.QueryRow("SELECT COUNT(*) FROM discuss WHERE discuss_id=? AND user_id=?", discussID, userID).Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return fmt.Errorf("discuss_id and user_id not match")
+	}
+	_, err = DB.Exec("delete from discuss where discuss_id=?", discussID)
 	return
 }
