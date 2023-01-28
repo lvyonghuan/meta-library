@@ -9,6 +9,11 @@ func PraiseComment(commentID int) (err error) {
 	return
 }
 
+func PraiseDiscuss(discussID int) (err error) {
+	_, err = DB.Exec("update discuss set praise_count=praise_count+1 where discuss_id=?", discussID)
+	return
+}
+
 func GetCollectList(userID int) (u []model.BookInfo, err error) {
 	row, err := DB.Query("select book.* from book join star on star.bookId=book.book_id where star.Id=?", userID)
 	if err != nil {

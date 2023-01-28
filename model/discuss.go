@@ -6,5 +6,5 @@ type DiscussInfo struct {
 	ReplayID  int    `json:"replay_id"`
 	Comment   string `json:"comment"`
 	UserID    int    `json:"user_id"`
-	StarNum   int    `json:"star_num"`
+	PraiseNum int    `json:"praise_count"`
 }

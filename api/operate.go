@@ -37,6 +37,13 @@ func Praise(c *gin.Context) {
 			util.RsepInternalErr(c)
 			return
 		}
+	} else if model == "2" {
+		err = service.PraiseDiscuss(targetID)
+		if err != nil {
+			log.Printf("search operate error:%v", err)
+			util.RsepInternalErr(c)
+			return
+		}
 	} else {
 		util.NormErr(c, 80501, "非法操作")
 	}

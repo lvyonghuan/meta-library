@@ -10,6 +10,11 @@ func PraiseComment(commentID int) (err error) {
 	return
 }
 
+func PraiseDiscuss(discussID int) (err error) {
+	err = dao.PraiseDiscuss(discussID)
+	return
+}
+
 func GetCollectList(userID int) (u []model.BookInfo, err error) {
 	u, err = dao.GetCollectList(userID)
 	return

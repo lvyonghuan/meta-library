@@ -11,7 +11,7 @@ import (
 //参考百度贴吧（先吐槽一下百度贴吧，多多少少有点屎山）。删除帖子的时候根据post_id进行全部删除，但是删评论不会删回复。
 
 func CreateDiscuss(u model.DiscussInfo) (discussID int, err error) {
-	res, err := DB.Exec("insert into discuss(discuss_id,post_id,replay_id,comment,user_id,star_num) values (?,?,?,?,?,?)", u.DiscussID, u.PostID, u.ReplayID, u.Comment, u.UserID, u.StarNum)
+	res, err := DB.Exec("insert into discuss(discuss_id,post_id,replay_id,comment,user_id,praise_count) values (?,?,?,?,?,?)", u.DiscussID, u.PostID, u.ReplayID, u.Comment, u.UserID, u.PraiseNum)
 	if err != nil {
 		return
 	}
@@ -27,7 +27,7 @@ func GetDiscussList(postID int) (u []model.DiscussInfo, err error) {
 	}
 	for row.Next() {
 		var temp model.DiscussInfo
-		err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.StarNum)
+		err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.PraiseNum)
 		if err != nil {
 			return
 		}
