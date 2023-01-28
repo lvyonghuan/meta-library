@@ -16,3 +16,19 @@ func CreateDiscuss(u model.DiscussInfo) (discussID int, err error) {
 	discussID = int(discussID64)
 	return
 }
+
+func GetDiscussList(postID int) (u []model.DiscussInfo, err error) {
+	row, err := DB.Query("select * from discuss where post_id=?", postID)
+	if err != nil {
+		return
+	}
+	for row.Next() {
+		var temp model.DiscussInfo
+		err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.StarNum)
+		if err != nil {
+			return
+		}
+		u = append(u, temp)
+	}
+	return
+}

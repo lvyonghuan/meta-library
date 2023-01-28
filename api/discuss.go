@@ -49,3 +49,20 @@ func CreateDiscuss(c *gin.Context) {
 	}
 	util.CreatDiscussRespSuccess(c, discussID)
 }
+
+func GetDiscussList(c *gin.Context) { //获取一个帖子下全部的回复信息
+	postIDString := c.Param("post_id")
+	postID, err := strconv.Atoi(postIDString)
+	if err != nil {
+		log.Printf("search discuss error:%v", err)
+		util.NormErr(c, 70012, "post_id非法")
+		return
+	}
+	uDisscussInfo, err := service.GetDiscussList(postID)
+	if err != nil {
+		log.Printf("search discuss error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	util.GetDiscussInfoSuccess(c, uDisscussInfo)
+}

@@ -2,13 +2,23 @@ package util
 
 import (
 	"github.com/gin-gonic/gin"
+	"meta_library/model"
 	"net/http"
 )
 
-type creatDiscussRespSuccess struct {
-	Status int    `json:"status"`
-	Info   string `json:"info"`
-	Data   int    `json:"data"`
+type discussRespSuccess struct {
+	Status   int                 `json:"status"`
+	Info     string              `json:"info"`
+	Comments []model.DiscussInfo `json:"comments"`
+}
+
+func GetDiscussInfoSuccess(c *gin.Context, u []model.DiscussInfo) {
+	response := discussRespSuccess{
+		Status:   10000,
+		Info:     "success",
+		Comments: u,
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func CreatDiscussRespSuccess(c *gin.Context, data int) {
