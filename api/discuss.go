@@ -58,11 +58,11 @@ func GetDiscussList(c *gin.Context) { //获取一个帖子下全部的回复信�
 		util.NormErr(c, 70012, "post_id非法")
 		return
 	}
-	uDisscussInfo, err := service.GetDiscussList(postID)
+	uDiscussInfo, err := service.GetDiscussList(postID)
 	if err != nil {
 		log.Printf("search discuss error:%v", err)
 		util.RsepInternalErr(c)
 		return
 	}
-	util.GetDiscussInfoSuccess(c, uDisscussInfo)
+	util.GetDiscussInfoSuccess(c, uDiscussInfo)
 }
