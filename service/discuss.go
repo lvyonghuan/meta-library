@@ -19,3 +19,13 @@ func DeleteDiscuss(discussID int, userID int) (err error) {
 	err = dao.DeleteDiscuss(discussID, userID)
 	return
 }
+
+func ReplayDiscuss(u model.DiscussInfo) (discussID int, err error) {
+	discussID, err = dao.ReplayDiscuss(u)
+	return
+}
+
+func SearchPostByDiscussID(discussID int) (postID int, err error) {
+	postID, err = dao.SearchPostByDiscussID(discussID)
+	return
+}

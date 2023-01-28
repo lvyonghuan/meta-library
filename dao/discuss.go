@@ -48,3 +48,23 @@ func DeleteDiscuss(discussID int, userID int) (err error) {
 	_, err = DB.Exec("delete from discuss where discuss_id=?", discussID)
 	return
 }
+
+func ReplayDiscuss(u model.DiscussInfo) (discussID int, err error) {
+	res, err := DB.Exec("insert into discuss(discuss_id,post_id,replay_id,comment,user_id,praise_count) values (?,?,?,?,?,?)", u.DiscussID, u.PostID, u.ReplayID, u.Comment, u.UserID, u.PraiseNum)
+	if err != nil {
+		return
+	}
+	discussID64, err := res.LastInsertId()
+	discussID = int(discussID64)
+	return
+}
+
+func SearchPostByDiscussID(discussID int) (postID int, err error) {
+	row := DB.QueryRow("select * from discuss where discuss_id = ?", discussID)
+	if err = row.Err(); row.Err() != nil {
+		return
+	}
+	var temp model.DiscussInfo
+	err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.PraiseNum)
+	return temp.PostID, err
+}

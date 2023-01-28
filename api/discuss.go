@@ -105,3 +105,50 @@ func DeleteDiscuss(c *gin.Context) {
 	}
 	util.RespOK(c)
 }
+
+func ReplayDiscuss(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	discussIDString := c.Param("discuss_id")
+	comment := c.PostForm("comment")
+	isExpired, username, err := tool.TokenExpired([]byte("114"), token)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 600100, "token错误")
+		return
+	}
+	if !isExpired {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 600102, "token已过期")
+		return
+	}
+	uUser, err := service.SearchUserByUserName(username)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	discussID, err := strconv.Atoi(discussIDString)
+	if err != nil {
+		log.Printf("search discuss error:%v", err)
+		util.NormErr(c, 70013, "discuss_id非法")
+		return
+	}
+	postID, err := service.SearchPostByDiscussID(discussID)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	var uDiscuss model.DiscussInfo
+	uDiscuss.PostID = postID
+	uDiscuss.Comment = comment
+	uDiscuss.UserID = uUser.Id
+	uDiscuss.ReplayID = discussID
+	discussID, err = service.ReplayDiscuss(uDiscuss)
+	if err != nil {
+		log.Printf("search discuss error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	util.CreatDiscussRespSuccess(c, discussID)
+}
