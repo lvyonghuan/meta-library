@@ -44,13 +44,13 @@ func RefreshComment(userID int, commentID int, content string) (err error) {
 	return
 }
 
-func DeleteComment(userID int, commentID int) (err error) {
+func DeleteComment(userID int, commentID int, isAdministrator bool) (err error) {
 	var count int
 	err = DB.QueryRow("SELECT COUNT(*) FROM comment WHERE post_id=? AND user_id=?", commentID, userID).Scan(&count)
 	if err != nil {
 		return err
 	}
-	if count != 1 {
+	if count != 1 && !isAdministrator {
 		return fmt.Errorf("post_id and user_id not match")
 	}
 	_, err = DB.Exec("delete from comment where post_id=?", commentID)

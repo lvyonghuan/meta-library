@@ -15,8 +15,8 @@ func GetDiscussList(postID int) (u []model.DiscussInfo, err error) {
 	return
 }
 
-func DeleteDiscuss(discussID int, userID int) (err error) {
-	err = dao.DeleteDiscuss(discussID, userID)
+func DeleteDiscuss(discussID int, userID int, isAdministrator bool) (err error) {
+	err = dao.DeleteDiscuss(discussID, userID, isAdministrator)
 	return
 }
 

@@ -94,7 +94,7 @@ func DeleteComment(c *gin.Context) {
 		util.NormErr(c, 80002, "comment_id非法")
 		return
 	}
-	err = service.DeleteComment(u.Id, commentID)
+	err = service.DeleteComment(u.Id, commentID, u.IsAdministrator)
 	if err != nil {
 		if err.Error() == "post_id and user_id not match" {
 			util.NormErr(c, 80004, "用户无权限删除此书评")

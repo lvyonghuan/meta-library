@@ -93,7 +93,7 @@ func DeleteDiscuss(c *gin.Context) {
 		util.NormErr(c, 70013, "discuss_id非法")
 		return
 	}
-	err = service.DeleteDiscuss(discussID, uUser.Id)
+	err = service.DeleteDiscuss(discussID, uUser.Id, uUser.IsAdministrator)
 	if err != nil {
 		if err.Error() == "discuss_id and user_id not match" {
 			util.NormErr(c, 70014, "用户无权限删除此书评")

@@ -36,13 +36,13 @@ func GetDiscussList(postID int) (u []model.DiscussInfo, err error) {
 	return
 }
 
-func DeleteDiscuss(discussID int, userID int) (err error) {
+func DeleteDiscuss(discussID int, userID int, isAdministrator bool) (err error) {
 	var count int
 	err = DB.QueryRow("SELECT COUNT(*) FROM discuss WHERE discuss_id=? AND user_id=?", discussID, userID).Scan(&count)
 	if err != nil {
 		return err
 	}
-	if count != 1 {
+	if count != 1 && !isAdministrator {
 		return fmt.Errorf("discuss_id and user_id not match")
 	}
 	_, err = DB.Exec("delete from discuss where discuss_id=?", discussID)

@@ -20,7 +20,7 @@ func RefreshComment(userID int, commentID int, content string) (err error) {
 	return err
 }
 
-func DeleteComment(userID int, commentID int) (err error) {
-	err = dao.DeleteComment(userID, commentID)
+func DeleteComment(userID int, commentID int, isAdministrator bool) (err error) {
+	err = dao.DeleteComment(userID, commentID, isAdministrator)
 	return
 }
