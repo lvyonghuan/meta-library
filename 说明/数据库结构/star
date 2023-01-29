@@ -1,0 +1,7 @@
+    Id      int        not null,
+    bookId  int        not null,
+    is_star tinyint(1) not null,
+    constraint star_book_null_fk
+        foreign key (bookId) references book (book_id),
+    constraint star_user_null_fk
+        foreign key (Id) references user (id)

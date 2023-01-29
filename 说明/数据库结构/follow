@@ -1,0 +1,10 @@
+create table follow
+(
+    follower_id int not null,
+    followee_id int not null,
+    constraint follow_user_id_fk
+        foreign key (followee_id) references user (id)
+);
+
+create index follow_user_null_fk
+    on follow (follower_id);

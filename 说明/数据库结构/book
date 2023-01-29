@@ -1,0 +1,11 @@
+    book_id      int auto_increment
+        primary key,
+    name         varchar(20)          not null,
+    is_star      tinyint(1) default 0 null,
+    author       varchar(20)          not null,
+    comment_num  int                  null,
+    score        int                  null,
+    cover        varchar(20)          null,
+    publish_time char(20)             null,
+    link         varchar(20)          null,
+    lable        varchar(64)          null

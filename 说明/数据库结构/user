@@ -1,0 +1,13 @@
+    id               int auto_increment
+        primary key,
+    username         char(20)    not null,
+    password         char(64)    not null,
+    nickname         char(20)    null,
+    gender           char(10)    null,
+    qq               bigint      null,
+    birthday         char(20)    null,
+    email            varchar(30) null,
+    avatar           char(20)    null,
+    introduction     char(64)    null,
+    phone            bigint      null,
+    is_administrator tinyint(1)  null

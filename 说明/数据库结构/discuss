@@ -1,0 +1,12 @@
+    discuss_id   int auto_increment
+        primary key,
+    post_id      int         not null,
+    replay_id    int         null,
+    comment      varchar(64) null,
+    user_id      int         not null,
+    praise_count int         null,
+    constraint discuss_comment_null_fk
+        foreign key (post_id) references comment (post_id)
+            on delete cascade,
+    constraint discuss_user_id_fk
+        foreign key (user_id) references user (id)

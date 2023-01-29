@@ -1,0 +1,15 @@
+    post_id      int auto_increment
+        primary key,
+    book_id      int                  not null,
+    publish_time varchar(20)          null,
+    content      varchar(128)         null,
+    user_id      int                  null,
+    avatar       varchar(32)          null,
+    nickname     varchar(20)          null,
+    praise_count int                  null,
+    is_praised   tinyint(1) default 0 null,
+    is_focus     tinyint(1) default 0 null,
+    constraint comment_book_null_fk
+        foreign key (book_id) references book (book_id),
+    constraint comment_user_name
+        foreign key (user_id) references user (id)
