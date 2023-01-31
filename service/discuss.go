@@ -25,7 +25,12 @@ func ReplayDiscuss(u model.DiscussInfo) (discussID int, err error) {
 	return
 }
 
-func SearchPostByDiscussID(discussID int) (postID int, err error) {
-	postID, err = dao.SearchPostByDiscussID(discussID)
+func SearchPostAndUserByDiscussID(discussID int) (postID int, userID int, err error) {
+	postID, userID, err = dao.SearchPostAndUserByDiscussID(discussID)
+	return
+}
+
+func CheckReplay(userID int) (u []model.DiscussInfo, err error) {
+	u, err = dao.CheckReplay(userID)
 	return
 }

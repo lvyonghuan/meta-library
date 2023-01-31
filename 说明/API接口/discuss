@@ -25,12 +25,35 @@ data          是         int     评论的ID
 请求参数：
 名称       位置    类型    必选    说明
 post_id   path    int    是     书评ID
-返回参数：无
+返回参数：
+字段名         必选       类型         说明
+comments      是     复杂数据类型      评论
 返回示例（成功返回）：
 {
-  "info": "success",
-  "status": 10000,
+    "status": 10000,
+    "info": "success",
+    "comments": [
+        {
+            "discuss_id": 1,
+            "post_id": 4,
+            "replay_id": 0,
+            "comment": "你好",
+            "user_id": 0,
+            "praise_count": 114,
+            "replay_uid": 4
+        },
+        {
+            "discuss_id": 2,
+            "post_id": 4,
+            "replay_id": 0,
+            "comment": "test",
+            "user_id": 4,
+            "praise_count": 1,
+            "replay_uid": 0
+        }
+    ]
 }
+（不要在意为什么回复的id比被回复的id顺序高，问就是输错了）
 
 3.删除评论
 请求路径：DELETE /discuss/{discuss_id}
@@ -64,4 +87,28 @@ data          是         int     评论的ID
   "info": "success",
   "status": 10000,
   "data": "{discuss_id}"
+}
+
+5.查看回复
+请求路径：GET /discuss/check
+请求头：Authorization
+请求参数：无
+返回参数：
+字段名         必选       类型         说明
+comments      是     复杂数据类型      回复
+返回示例（成功返回）：
+{
+    "status": 10000,
+    "info": "success",
+    "comments": [
+        {
+            "discuss_id": 1,
+            "post_id": 4,
+            "replay_id": 0,
+            "comment": "你好",
+            "user_id": 0,
+            "praise_count": 114,
+            "replay_uid": 4
+        }
+    ]
 }

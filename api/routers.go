@@ -33,6 +33,7 @@ func InitRouter() {
 		discuss.GET("/:post_id", GetDiscussList)
 		discuss.DELETE("/:discuss_id", DeleteDiscuss)
 		discuss.POST("/replay/:discuss_id", ReplayDiscuss)
+		discuss.GET("/check", CheckReplay)
 	}
 	operate := r.Group("/operate")
 	{

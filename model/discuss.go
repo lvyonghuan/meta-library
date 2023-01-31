@@ -7,4 +7,5 @@ type DiscussInfo struct {
 	Comment   string `json:"comment"`
 	UserID    int    `json:"user_id"`
 	PraiseNum int    `json:"praise_count"`
+	ReplayUid int    `json:"replay_uid"`
 }

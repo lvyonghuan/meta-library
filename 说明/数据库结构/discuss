@@ -5,6 +5,7 @@
     comment      varchar(64) null,
     user_id      int         not null,
     praise_count int         null,
+    replay_uid   int         null,
     constraint discuss_comment_null_fk
         foreign key (post_id) references comment (post_id)
             on delete cascade,

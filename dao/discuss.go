@@ -8,10 +8,10 @@ import (
 //两个功能：一个是发表评论，第二个回复评论
 //这块完全没用经验，姑且先弄一下思路。发表评论直接挂靠在post_id下即可，同时获取user_id。
 //回复需要post_id和replay_id两个数据，同时获取user_id。
-//参考百度贴吧（先吐槽一下百度贴吧，多多少少有点屎山）。删除帖子的时候根据post_id进行全部删除，但是删评论不会删回复。
+//参考百度贴吧（先吐槽一下百度贴吧，多多少少有点屎山）。删除帖子的时候根据post_id进行全部删除，但是删评论不会删回复。(后注：这一点是依赖外键在数据库内实现的）
 
 func CreateDiscuss(u model.DiscussInfo) (discussID int, err error) {
-	res, err := DB.Exec("insert into discuss(discuss_id,post_id,replay_id,comment,user_id,praise_count) values (?,?,?,?,?,?)", u.DiscussID, u.PostID, u.ReplayID, u.Comment, u.UserID, u.PraiseNum)
+	res, err := DB.Exec("insert into discuss(discuss_id,post_id,replay_id,comment,user_id,praise_count,replay_id) values (?,?,?,?,?,?,?)", u.DiscussID, u.PostID, u.ReplayID, u.Comment, u.UserID, u.PraiseNum, u.ReplayUid)
 	if err != nil {
 		return
 	}
@@ -27,7 +27,7 @@ func GetDiscussList(postID int) (u []model.DiscussInfo, err error) {
 	}
 	for row.Next() {
 		var temp model.DiscussInfo
-		err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.PraiseNum)
+		err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.PraiseNum, &temp.ReplayUid)
 		if err != nil {
 			return
 		}
@@ -50,7 +50,7 @@ func DeleteDiscuss(discussID int, userID int, isAdministrator bool) (err error) 
 }
 
 func ReplayDiscuss(u model.DiscussInfo) (discussID int, err error) {
-	res, err := DB.Exec("insert into discuss(discuss_id,post_id,replay_id,comment,user_id,praise_count) values (?,?,?,?,?,?)", u.DiscussID, u.PostID, u.ReplayID, u.Comment, u.UserID, u.PraiseNum)
+	res, err := DB.Exec("insert into discuss(discuss_id,post_id,replay_id,comment,user_id,praise_count,replay_uid) values (?,?,?,?,?,?,?)", u.DiscussID, u.PostID, u.ReplayID, u.Comment, u.UserID, u.PraiseNum, u.ReplayUid)
 	if err != nil {
 		return
 	}
@@ -59,12 +59,28 @@ func ReplayDiscuss(u model.DiscussInfo) (discussID int, err error) {
 	return
 }
 
-func SearchPostByDiscussID(discussID int) (postID int, err error) {
+func SearchPostAndUserByDiscussID(discussID int) (postID int, userID int, err error) { //根据回复查找postID和uid
 	row := DB.QueryRow("select * from discuss where discuss_id = ?", discussID)
 	if err = row.Err(); row.Err() != nil {
 		return
 	}
 	var temp model.DiscussInfo
-	err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.PraiseNum)
-	return temp.PostID, err
+	err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.PraiseNum, &temp.ReplayUid)
+	return temp.PostID, temp.UserID, err
+}
+
+func CheckReplay(userID int) (u []model.DiscussInfo, err error) { //查看回复
+	row, err := DB.Query("select * from discuss where replay_uid=?", userID)
+	if err != nil {
+		return
+	}
+	for row.Next() {
+		var temp model.DiscussInfo
+		err = row.Scan(&temp.DiscussID, &temp.PostID, &temp.ReplayID, &temp.Comment, &temp.UserID, &temp.PraiseNum, &temp.ReplayUid)
+		if err != nil {
+			return
+		}
+		u = append(u, temp)
+	}
+	return
 }

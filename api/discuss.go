@@ -133,7 +133,7 @@ func ReplayDiscuss(c *gin.Context) {
 		util.NormErr(c, 70013, "discuss_id非法")
 		return
 	}
-	postID, err := service.SearchPostByDiscussID(discussID)
+	postID, userID, err := service.SearchPostAndUserByDiscussID(discussID) //得到帖子ID，被回复用户UID
 	if err != nil {
 		log.Printf("search user error:%v", err)
 		util.RsepInternalErr(c)
@@ -144,6 +144,7 @@ func ReplayDiscuss(c *gin.Context) {
 	uDiscuss.Comment = comment
 	uDiscuss.UserID = uUser.Id
 	uDiscuss.ReplayID = discussID
+	uDiscuss.ReplayUid = userID
 	discussID, err = service.ReplayDiscuss(uDiscuss)
 	if err != nil {
 		log.Printf("search discuss error:%v", err)
@@ -151,4 +152,27 @@ func ReplayDiscuss(c *gin.Context) {
 		return
 	}
 	util.CreatDiscussRespSuccess(c, discussID)
+}
+
+func CheckReplay(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	isExpired, username, err := tool.TokenExpired([]byte("114"), token)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 600100, "token错误")
+		return
+	}
+	if !isExpired {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 600102, "token已过期")
+		return
+	}
+	uUser, err := service.SearchUserByUserName(username)
+	u, err := service.CheckReplay(uUser.Id)
+	if err != nil {
+		log.Printf("search discuss error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	util.GetDiscussInfoSuccess(c, u)
 }
