@@ -58,8 +58,8 @@ func Login(c *gin.Context) {
 	}
 	if u.PassWord != password {
 		util.NormErr(c, 60003, "密码错误")
+		return
 	}
-
 	token, err := tool.GenerateToken([]byte("114"), 3600*time.Second, username)
 	if err != nil {
 		log.Printf("search user error:%v", err)
