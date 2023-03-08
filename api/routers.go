@@ -4,6 +4,7 @@ import "github.com/gin-gonic/gin"
 
 func InitRouter() {
 	r := gin.Default()
+	r.GET("/github_login", GithubLogin)
 	use := r.Group("/user")
 	{
 		use.POST("/register", Register)
@@ -12,6 +13,8 @@ func InitRouter() {
 		use.PUT("/password", ChangePassword)
 		use.GET("/info/:user_id", GetUserInfo)
 		use.PUT("/info", ChangeUserInfo)
+		use.GET("/redirect_github", RedirectGithub)
+		use.GET("/github_login", GithubLogin)
 	}
 	book := r.Group("/book")
 	{

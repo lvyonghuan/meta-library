@@ -9,6 +9,7 @@ import (
 	"meta_library/service"
 	"meta_library/tool"
 	"meta_library/util"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -217,4 +218,44 @@ func ChangeUserInfo(c *gin.Context) {
 		return
 	}
 	util.RespOK(c)
+}
+
+func RedirectGithub(c *gin.Context) {
+	// 构造授权 URL
+	state := tool.GenerateState()
+	conf := model.Conf{
+		ClientId:     "Iv1.993fdcaba2e1356f",
+		ClientSecret: "d4fa07c0d67b6f8d8f9ee8341748949e2cde6ce4",
+		RedirectUrl:  "http://localhost:8080/github_login",
+		State:        state,
+	}
+	//url := "https://github.com/login/oauth/authorize?client_id=" + conf.ClientId + "&redirect_uri=" + conf.RedirectUrl + "&state=" + state
+	url := "https://github.com/login/oauth/authorize?client_id=" + conf.ClientId + "&redirect_uri=" + conf.RedirectUrl
+	// 重定向到授权 URL
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+func GithubLogin(c *gin.Context) {
+	// 从查询参数中获取授权代码和状态令牌
+	code := c.Query("code")
+	//state := c.Query("state")
+	// 根据授权代码交换访问令牌
+	token, err := service.GetAccessToken(code)
+	if err != nil {
+		// 处理错误
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	// 使用访问令牌获取用户数据
+	user, err := service.GetUserData(token)
+	if err != nil {
+		// 处理错误
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	// 响应成功
+	c.JSON(http.StatusOK, gin.H{
+		"message": "登录成功",
+		"user":    user,
+	})
 }
