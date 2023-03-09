@@ -6,9 +6,11 @@ import (
 )
 
 func InitRouter() {
-	uID := make(chan int, 2)
+	choice := make(chan int, 10)
+	uIDLink := make(chan int, 1)
+	uIDLogin := make(chan int, 1)
 	r := gin.Default()
-	r.GET("/github_login", GithubLogin(uID))
+	r.GET("/github_login", GithubLogin(choice, uIDLink, uIDLogin))
 	user := r.Group("/user")
 	{
 		user.POST("/register", Register)
@@ -17,9 +19,9 @@ func InitRouter() {
 		user.PUT("/password", ChangePassword)
 		user.GET("/info/:user_id", GetUserInfo)
 		user.PUT("/info", ChangeUserInfo)
-		user.GET("/redirect_github", service.RedirectGithub)
-		user.GET("/link_github", LinkWithGithub(uID))
-		user.GET("/login_by_github", LoginByGithub(uID))
+		user.GET("/redirect", service.RedirectGithub)
+		user.POST("/link_github", LinkWithGithub(choice, uIDLink))
+		user.GET("/login_by_github", LoginByGithub(choice, uIDLogin))
 	}
 	book := r.Group("/book")
 	{

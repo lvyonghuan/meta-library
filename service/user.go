@@ -141,6 +141,7 @@ func LinkWithGithub(githubID int, uID int) (err error) {
 
 func RedirectGithub(c *gin.Context) {
 	// 构造授权 URL
+	log.Println("RedirectGithub function called")
 	state := tool.GenerateState()
 	conf := model.Conf{
 		ClientId:     "Iv1.993fdcaba2e1356f",

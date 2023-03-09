@@ -10,7 +10,6 @@ import (
 	"meta_library/tool"
 	"meta_library/util"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -220,11 +219,8 @@ func ChangeUserInfo(c *gin.Context) {
 	util.RespOK(c)
 }
 
-var mu sync.Mutex
-
-func GithubLogin(uID chan int) gin.HandlerFunc {
+func GithubLogin(choice chan int, uIDLink chan int, uIDLogin chan int) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		<-uID
 		log.Println("GithubLogin function called")
 		// 从查询参数中获取授权代码和状态令牌
 		code := c.Query("code")
@@ -250,22 +246,27 @@ func GithubLogin(uID chan int) gin.HandlerFunc {
 			return
 		}
 		log.Println(int(userID))
-		uID <- int(userID)
-		mu.Unlock()
+		switch <-choice {
+		case 1:
+			uIDLink <- int(userID)
+		case 2:
+			uIDLogin <- int(userID)
+
+		}
 	}
 }
 
-func LinkWithGithub(uID chan int) gin.HandlerFunc {
-	fmt.Printf("yes1")
+func LinkWithGithub(choice chan int, uID chan int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 		u, err := service.CheckToken(token, c)
 		if err != nil {
-			log.Println("问题")
 			return
 		}
+		temp := make(chan int)
 		service.RedirectGithub(c)
-		uID <- 1
+		go GithubLogin(choice, temp, uID)
+		choice <- 1
 		userID := <-uID
 		err = service.LinkWithGithub(userID, u.Id)
 		if err != nil {
@@ -276,11 +277,10 @@ func LinkWithGithub(uID chan int) gin.HandlerFunc {
 	}
 }
 
-func LoginByGithub(uID chan int) gin.HandlerFunc {
+func LoginByGithub(choice chan int, uID chan int) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uID <- 1
 		service.RedirectGithub(c)
-		mu.Lock()
+		choice <- 2
 		githubID := <-uID
 		log.Println("这里")
 		log.Println(githubID)
