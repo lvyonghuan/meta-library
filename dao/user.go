@@ -34,3 +34,17 @@ func ChangeUserInfo(u model.UserInfo) (err error) { //查询用户信息
 	_, err = DB.Exec("update user set nickname=?,avatar=?,introduction=?,phone=?,qq=?,gender=?,email=?,birthday=? where username=?", u.Nickname, u.Avatar, u.Introduction, u.Phone, u.QQ, u.Gender, u.Email, u.Birthday, u.UserName)
 	return err
 }
+
+func LinkWithGithub(githubID int, uID int) (err error) {
+	_, err = DB.Exec("insert into github_relate(github_id,uid) values (?,?)", githubID, uID)
+	return
+}
+
+func SearchGithubID(githubID int) (uid int, err error) {
+	row := DB.QueryRow("select * from github_relate where github_id = ?", githubID)
+	if err = row.Err(); row.Err() != nil {
+		return
+	}
+	err = row.Scan(&githubID, &uid)
+	return uid, err
+}

@@ -1,20 +1,25 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"meta_library/service"
+)
 
 func InitRouter() {
+	uID := make(chan int, 2)
 	r := gin.Default()
-	r.GET("/github_login", GithubLogin)
-	use := r.Group("/user")
+	r.GET("/github_login", GithubLogin(uID))
+	user := r.Group("/user")
 	{
-		use.POST("/register", Register)
-		use.GET("/token", Login)
-		use.GET("/token/refresh", RefreshToken)
-		use.PUT("/password", ChangePassword)
-		use.GET("/info/:user_id", GetUserInfo)
-		use.PUT("/info", ChangeUserInfo)
-		use.GET("/redirect_github", RedirectGithub)
-		use.GET("/github_login", GithubLogin)
+		user.POST("/register", Register)
+		user.GET("/token", Login)
+		user.GET("/token/refresh", RefreshToken)
+		user.PUT("/password", ChangePassword)
+		user.GET("/info/:user_id", GetUserInfo)
+		user.PUT("/info", ChangeUserInfo)
+		user.GET("/redirect_github", service.RedirectGithub)
+		user.GET("/link_github", LinkWithGithub(uID))
+		user.GET("/login_by_github", LoginByGithub(uID))
 	}
 	book := r.Group("/book")
 	{

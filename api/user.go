@@ -9,8 +9,8 @@ import (
 	"meta_library/service"
 	"meta_library/tool"
 	"meta_library/util"
-	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -220,42 +220,95 @@ func ChangeUserInfo(c *gin.Context) {
 	util.RespOK(c)
 }
 
-func RedirectGithub(c *gin.Context) {
-	// 构造授权 URL
-	state := tool.GenerateState()
-	conf := model.Conf{
-		ClientId:     "Iv1.993fdcaba2e1356f",
-		ClientSecret: "d4fa07c0d67b6f8d8f9ee8341748949e2cde6ce4",
-		RedirectUrl:  "http://localhost:8080/github_login",
-		State:        state,
+var mu sync.Mutex
+
+func GithubLogin(uID chan int) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		<-uID
+		log.Println("GithubLogin function called")
+		// 从查询参数中获取授权代码和状态令牌
+		code := c.Query("code")
+		//state := c.Query("state")
+		// 根据授权代码交换访问令牌
+		token, err := service.GetAccessToken(code)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println("code:" + code)
+		// 使用访问令牌获取用户数据
+		user, err := service.GetUserData(token)
+		if err != nil {
+			// 处理错误
+			log.Println(err)
+			return
+		}
+		userID := user["id"].(float64)
+		if err != nil {
+			log.Printf("search user error:%v", err)
+			util.NormErr(c, 60011, "非法数值")
+			return
+		}
+		log.Println(int(userID))
+		uID <- int(userID)
+		mu.Unlock()
 	}
-	//url := "https://github.com/login/oauth/authorize?client_id=" + conf.ClientId + "&redirect_uri=" + conf.RedirectUrl + "&state=" + state
-	url := "https://github.com/login/oauth/authorize?client_id=" + conf.ClientId + "&redirect_uri=" + conf.RedirectUrl
-	// 重定向到授权 URL
-	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-func GithubLogin(c *gin.Context) {
-	// 从查询参数中获取授权代码和状态令牌
-	code := c.Query("code")
-	//state := c.Query("state")
-	// 根据授权代码交换访问令牌
-	token, err := service.GetAccessToken(code)
-	if err != nil {
-		// 处理错误
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
+func LinkWithGithub(uID chan int) gin.HandlerFunc {
+	fmt.Printf("yes1")
+	return func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		u, err := service.CheckToken(token, c)
+		if err != nil {
+			log.Println("问题")
+			return
+		}
+		service.RedirectGithub(c)
+		uID <- 1
+		userID := <-uID
+		err = service.LinkWithGithub(userID, u.Id)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		util.RespOK(c)
 	}
-	// 使用访问令牌获取用户数据
-	user, err := service.GetUserData(token)
-	if err != nil {
-		// 处理错误
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
+}
+
+func LoginByGithub(uID chan int) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		uID <- 1
+		service.RedirectGithub(c)
+		mu.Lock()
+		githubID := <-uID
+		log.Println("这里")
+		log.Println(githubID)
+		uid, err := service.LoginByGithub(githubID)
+		if err != nil {
+			log.Println(err)
+			util.RsepInternalErr(c)
+			return
+		}
+		u, err := service.SearchUserByUserId(uid)
+		if err != nil {
+			log.Println(err)
+			util.RsepInternalErr(c)
+			return
+		}
+		log.Println(u)
+		token, err := tool.GenerateToken([]byte("114"), 3600*time.Second, u.UserName)
+		if err != nil {
+			log.Printf("search user error:%v", err)
+			util.NormErr(c, 60010, "登陆错误")
+			return
+		}
+		refreshToken, err := tool.GenerateToken([]byte("514"), 86400*time.Second, u.UserName)
+		if err != nil {
+			log.Printf("search user error:%v", err)
+			util.NormErr(c, 60010, "登陆错误")
+			return
+		}
+		util.RespSuccess(c, token, refreshToken)
 	}
-	// 响应成功
-	c.JSON(http.StatusOK, gin.H{
-		"message": "登录成功",
-		"user":    user,
-	})
 }

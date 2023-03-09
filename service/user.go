@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"meta_library/dao"
 	"meta_library/model"
+	"meta_library/tool"
+	"meta_library/util"
 	"net/http"
 	"net/url"
 )
@@ -109,6 +111,50 @@ func GetUserData(token string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(user)
 	return user, nil
+}
+
+func CheckToken(token string, c *gin.Context) (u model.UserInfo, err error) {
+	isExist, username, err := tool.TokenExpired([]byte("114"), token)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 600100, "token错误")
+		return
+	}
+	if !isExist {
+		util.NormErr(c, 600102, "token已过期")
+		return
+	}
+	u, err = SearchUserByUserName(username)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.RsepInternalErr(c)
+		return
+	}
+	return u, err
+}
+
+func LinkWithGithub(githubID int, uID int) (err error) {
+	err = dao.LinkWithGithub(githubID, uID)
+	return
+}
+
+func RedirectGithub(c *gin.Context) {
+	// 构造授权 URL
+	state := tool.GenerateState()
+	conf := model.Conf{
+		ClientId:     "Iv1.993fdcaba2e1356f",
+		ClientSecret: "d4fa07c0d67b6f8d8f9ee8341748949e2cde6ce4",
+		RedirectUrl:  "http://localhost:8080/github_login",
+		State:        state,
+	}
+	//url := "https://github.com/login/oauth/authorize?client_id=" + conf.ClientId + "&redirect_uri=" + conf.RedirectUrl + "&state=" + state
+	url := "https://github.com/login/oauth/authorize?client_id=" + conf.ClientId + "&redirect_uri=" + conf.RedirectUrl
+	// 重定向到授权 URL
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+func LoginByGithub(githubID int) (uid int, err error) {
+	uid, err = dao.SearchGithubID(githubID)
+	return uid, err
 }
