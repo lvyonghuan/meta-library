@@ -4,13 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"meta_library/util"
-	"net/http"
 	"time"
 )
 
 func GenerateGithubCookieAndSession(c *gin.Context) (sessionID string) {
 	sessionID = RandString(10)
-	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie("githubSessionID", sessionID, 3600, "/", "localhost", false, true) // 保存登陆状态
 	return sessionID
 }
