@@ -48,3 +48,22 @@ func SearchGithubID(githubID int) (uid int, err error) {
 	err = row.Scan(&githubID, &uid)
 	return uid, err
 }
+
+func StoreSession(sessionID string, value string) (err error) {
+	_, err = DB.Exec("insert into session(session,token) values (?,?)", sessionID, value)
+	return
+}
+
+func DeleteSession(sessionID string) (err error) {
+	_, err = DB.Exec("delete from session where session=?", sessionID)
+	return err
+}
+
+func SearchSessionByID(sessionID string) (token string, err error) {
+	row := DB.QueryRow("select * from session where session = ?", sessionID)
+	if err = row.Err(); row.Err() != nil {
+		return
+	}
+	err = row.Scan(&sessionID, &token)
+	return token, err
+}

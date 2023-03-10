@@ -111,7 +111,7 @@ func GetUserData(token string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return user, err
 }
 
 func CheckToken(token string, c *gin.Context) (u model.UserInfo, err error) {
@@ -158,4 +158,14 @@ func RedirectGithub(c *gin.Context) {
 func LoginByGithub(githubID int) (uid int, err error) {
 	uid, err = dao.SearchGithubID(githubID)
 	return uid, err
+}
+
+func StoreSession(sessionID string, value string) (err error) {
+	err = dao.StoreSession(sessionID, value)
+	return
+}
+
+func SearchSessionByID(sessionID string) (token string, err error) {
+	token, err = dao.SearchSessionByID(sessionID)
+	return token, err
 }

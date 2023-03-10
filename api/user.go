@@ -219,96 +219,104 @@ func ChangeUserInfo(c *gin.Context) {
 	util.RespOK(c)
 }
 
-func GithubLogin(choice chan int, uIDLink chan int, uIDLogin chan int) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		log.Println("GithubLogin function called")
-		// 从查询参数中获取授权代码和状态令牌
-		code := c.Query("code")
-		//state := c.Query("state")
-		// 根据授权代码交换访问令牌
-		token, err := service.GetAccessToken(code)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		log.Println("code:" + code)
-		// 使用访问令牌获取用户数据
-		user, err := service.GetUserData(token)
-		if err != nil {
-			// 处理错误
-			log.Println(err)
-			return
-		}
-		userID := user["id"].(float64)
-		if err != nil {
-			log.Printf("search user error:%v", err)
-			util.NormErr(c, 60011, "非法数值")
-			return
-		}
-		log.Println(int(userID))
-		switch <-choice {
-		case 1:
-			uIDLink <- int(userID)
-		case 2:
-			uIDLogin <- int(userID)
-
-		}
+func GithubLogin(c *gin.Context) {
+	log.Println("GithubLogin function called")
+	// 从查询参数中获取授权代码和状态令牌
+	code := c.Query("code")
+	//state := c.Query("state")
+	// 根据授权代码交换访问令牌
+	token, err := service.GetAccessToken(code)
+	if err != nil {
+		return
+	}
+	sessionID := tool.GenerateGithubCookieAndSession(c, token)
+	err = service.StoreSession(sessionID, token)
+	if err != nil {
+		log.Println(token)
+		log.Println(err)
+		util.RsepInternalErr(c)
+		return
+	}
+	err = tool.DeleteSessionTimer(sessionID)
+	if err != nil {
+		util.RsepInternalErr(c)
+		return
 	}
 }
 
-func LinkWithGithub(choice chan int, uID chan int) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token := c.GetHeader("Authorization")
-		u, err := service.CheckToken(token, c)
-		if err != nil {
-			return
-		}
-		temp := make(chan int)
-		service.RedirectGithub(c)
-		go GithubLogin(choice, temp, uID)
-		choice <- 1
-		userID := <-uID
-		err = service.LinkWithGithub(userID, u.Id)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		util.RespOK(c)
+func LinkWithGithub(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	u, err := service.CheckToken(token, c)
+	if err != nil {
+		return
 	}
+	service.RedirectGithub(c)
+	isTimeout, err, sessionID := tool.CookieWaiter(c)
+	if isTimeout || err != nil {
+		return
+	}
+	token, err = service.SearchSessionByID(sessionID)
+	if err != nil {
+		log.Println(err)
+		util.RsepInternalErr(c)
+		return
+	}
+	user, err := service.GetUserData(token)
+	if err != nil {
+		// 处理错误
+		log.Println(err)
+		util.NormErr(c, 99999, "我不道啊")
+		return
+	}
+	userID := user["id"].(float64)
+	err = service.LinkWithGithub(int(userID), u.Id)
+	if err != nil {
+		log.Println(err)
+		util.RsepInternalErr(c)
+		return
+	}
+	util.RespOK(c)
 }
 
-func LoginByGithub(choice chan int, uID chan int) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		service.RedirectGithub(c)
-		choice <- 2
-		githubID := <-uID
-		log.Println("这里")
-		log.Println(githubID)
-		uid, err := service.LoginByGithub(githubID)
-		if err != nil {
-			log.Println(err)
-			util.RsepInternalErr(c)
-			return
-		}
-		u, err := service.SearchUserByUserId(uid)
-		if err != nil {
-			log.Println(err)
-			util.RsepInternalErr(c)
-			return
-		}
-		log.Println(u)
-		token, err := tool.GenerateToken([]byte("114"), 3600*time.Second, u.UserName)
-		if err != nil {
-			log.Printf("search user error:%v", err)
-			util.NormErr(c, 60010, "登陆错误")
-			return
-		}
-		refreshToken, err := tool.GenerateToken([]byte("514"), 86400*time.Second, u.UserName)
-		if err != nil {
-			log.Printf("search user error:%v", err)
-			util.NormErr(c, 60010, "登陆错误")
-			return
-		}
-		util.RespSuccess(c, token, refreshToken)
+func LoginByGithub(c *gin.Context) {
+	service.RedirectGithub(c)
+	isTimeout, err, sessionID := tool.CookieWaiter(c)
+	if isTimeout || err != nil {
+		return
 	}
+	githubToken, err := service.SearchSessionByID(sessionID)
+	if err != nil {
+		log.Println(err)
+		util.RsepInternalErr(c)
+		return
+	}
+	user, err := service.GetUserData(githubToken)
+	if err != nil {
+		// 处理错误
+		log.Println(err)
+		util.NormErr(c, 99999, "我不道啊")
+		return
+	}
+	userID := user["id"].(float64)
+	uid, err := service.LoginByGithub(int(userID))
+	u, err := service.SearchUserByUserId(uid)
+	if err != nil {
+		log.Println(err)
+		util.RsepInternalErr(c)
+		return
+	}
+	log.Println(u)
+	token, err := tool.GenerateToken([]byte("114"), 3600*time.Second, u.UserName)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 60010, "登陆错误")
+		return
+	}
+	refreshToken, err := tool.GenerateToken([]byte("514"), 86400*time.Second, u.UserName)
+	if err != nil {
+		log.Printf("search user error:%v", err)
+		util.NormErr(c, 60010, "登陆错误")
+		return
+	}
+	util.RespSuccess(c, token, refreshToken)
 }
