@@ -227,12 +227,14 @@ func GithubLogin(c *gin.Context) {
 	// 根据授权代码交换访问令牌
 	token, err := service.GetAccessToken(code)
 	if err != nil {
+		log.Println(err)
 		return
 	}
-	sessionID := tool.GenerateGithubCookieAndSession(c, token)
+	log.Println("令牌获取")
+	sessionID := tool.GenerateGithubCookieAndSession(c)
+	log.Println("cookie设置完成")
 	err = service.StoreSession(sessionID, token)
 	if err != nil {
-		log.Println(token)
 		log.Println(err)
 		util.RsepInternalErr(c)
 		return
@@ -242,6 +244,7 @@ func GithubLogin(c *gin.Context) {
 		util.RsepInternalErr(c)
 		return
 	}
+	log.Println("github设置模块运行完毕")
 }
 
 func LinkWithGithub(c *gin.Context) {
@@ -284,6 +287,7 @@ func LoginByGithub(c *gin.Context) {
 	if isTimeout || err != nil {
 		return
 	}
+	log.Println("我跑这里来了")
 	githubToken, err := service.SearchSessionByID(sessionID)
 	if err != nil {
 		log.Println(err)
