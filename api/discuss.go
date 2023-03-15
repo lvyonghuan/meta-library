@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"log"
+	"meta_library/dao/rds"
 	"meta_library/model"
 	"meta_library/service"
 	"meta_library/tool"
@@ -47,6 +48,7 @@ func CreateDiscuss(c *gin.Context) {
 		util.RsepInternalErr(c)
 		return
 	}
+	rds.Publish(c, postID, comment)
 	util.CreatDiscussRespSuccess(c, discussID)
 }
 
@@ -175,4 +177,17 @@ func CheckReplay(c *gin.Context) {
 		return
 	}
 	util.GetDiscussInfoSuccess(c, u)
+}
+
+func SubscribeComment(c *gin.Context) {
+	postIDStr := c.PostForm("post_id")
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		log.Println(postIDStr)
+		log.Println(err)
+		util.NormErr(c, 70012, "post_id非法")
+		return
+	}
+	rds.Subscribe(c, postID)
+	util.RespOK(c)
 }
