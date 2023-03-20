@@ -25,8 +25,8 @@ func InsertUser(u model.UserInfo) (err error) {
 	return err
 }
 
-func ChangePasswordByUsername(username string, newPassword string) (err error) {
-	err = dao.ChangePasswordByUsername(username, newPassword)
+func ChangePasswordByUsername(userID int, newPassword string) (err error) {
+	err = dao.ChangePasswordByUsername(userID, newPassword)
 	return err
 }
 

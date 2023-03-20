@@ -136,7 +136,7 @@ func ChangePassword(c *gin.Context) {
 		util.NormErr(c, 60003, "密码错误")
 		return
 	}
-	err = service.ChangePasswordByUsername(username, newPassword)
+	err = service.ChangePasswordByUsername(u.Id, newPassword)
 	if err != nil {
 		log.Printf("search user error:%v", err)
 		util.RsepInternalErr(c)
